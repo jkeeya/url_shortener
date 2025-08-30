@@ -2,9 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"math/rand"
+	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
+
+	sql "database/sql"
+
+	_ "github.com/jackc/pgx"
 )
 
 var data_file = "data.json"
@@ -61,15 +68,21 @@ func checkExistence(url string) (bool, string) {
 }
 
 func main() {
-	fmt.Println(makeShortLinkForURL("yandex.ru"))
-	// // Создаем новый экземпляр роутера
-	// r := gin.Default()
+	db, err := sql.Open("postgres",
+		"postgres:postgres@tcp(127.0.0.1:5432)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
-	// // Определяем маршрут для главной страницы
-	// r.GET("/", func(c *gin.Context) {
-	//     c.String(http.StatusOK, "Привет, Gin!")
-	// })
+	// Создаем новый экземпляр роутера
+	r := gin.Default()
 
-	// // Запускаем сервер на порту 8080
-	// r.Run(":8080")
+	// Определяем маршрут для главной страницы
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Привет, Gin!")
+	})
+
+	// Запускаем сервер на порту 8080
+	r.Run(":8080")
 }
