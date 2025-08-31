@@ -2,6 +2,8 @@ module github.com/jkeeya/url_shortener
 
 go 1.24.6
 
+//replace github.com/jkeeya/url_shortener/domain => .internal/domain
+
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/gin-gonic/gin v1.10.1
