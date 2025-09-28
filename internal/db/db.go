@@ -10,13 +10,15 @@ import (
 	goose "github.com/pressly/goose/v3"
 )
 
-type DB interface {
+type IDB interface {
 	runMigrations(db *sql.DB, migrationsDir string) error
 	Insert(ctx context.Context, url string, shortLink string) error
 	Select(ctx context.Context, url string) (string, error)
 }
 
-var db *sql.DB
+type DB struct {
+	db *sql.DB
+}
 
 func NewConnection() *sql.DB {
 	dsn := `host=127.0.0.1 user=postgres
@@ -50,7 +52,7 @@ func runMigrations(db *sql.DB) error {
 	return nil
 }
 
-func AddNewAlias(ctx context.Context, url string, shortLink string) error {
+func (db DB) AddNewAlias(ctx context.Context, url string, shortLink string) error {
 	sql, args, err := sq.
 		Insert("short_links").
 		Columns("original_url", "short_code").
@@ -58,7 +60,7 @@ func AddNewAlias(ctx context.Context, url string, shortLink string) error {
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
-	_, err = db.ExecContext(ctx, sql, args...)
+	_, err = db.db.ExecContext(ctx, sql, args...)
 
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -66,7 +68,7 @@ func AddNewAlias(ctx context.Context, url string, shortLink string) error {
 	return err
 }
 
-func FindByURL(ctx context.Context, url string) (string, error) {
+func (db DB) FindByURL(ctx context.Context, url string) (string, error) {
 	sql, args, err := sq.
 		Select("*").
 		From("").
@@ -75,7 +77,7 @@ func FindByURL(ctx context.Context, url string) (string, error) {
 		ToSql()
 
 	var shortCode string
-	err = db.QueryRowContext(ctx, sql, args...).Scan(&shortCode)
+	err = db.db.QueryRowContext(ctx, sql, args...).Scan(&shortCode)
 	if err != nil {
 		return "", err
 	}
