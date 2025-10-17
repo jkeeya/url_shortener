@@ -1,4 +1,4 @@
-package postgres
+package repo_postgres
 
 import (
 	"context"
@@ -15,10 +15,10 @@ import (
 
 func NewPostgresRepo() service.Repo {
 	conn, _ := NewConnection()
-	return &PostgresDB{conn: conn}
+	return &RepoPostgres{conn: conn}
 }
 
-type PostgresDB struct {
+type RepoPostgres struct {
 	conn *sql.DB
 }
 
@@ -41,7 +41,7 @@ func NewConnection() (*sql.DB, error) {
 }
 
 func runMigrations(db *sql.DB, migrationsDir string) error {
-	_ = goose.SetDialect("postgres")
+	_ = goose.SetDialect("repo_postgres")
 
 	if err := goose.Up(db, migrationsDir); err != nil {
 		return fmt.Errorf("ошибка миграции: %w", err)
@@ -51,7 +51,7 @@ func runMigrations(db *sql.DB, migrationsDir string) error {
 	return nil
 }
 
-func (d *PostgresDB) AddNewAlias(ctx context.Context, url string, shortLink string) error {
+func (d *RepoPostgres) AddNewAlias(ctx context.Context, url string, shortLink string) error {
 	query, args, err := sq.
 		Insert("short_links").
 		Columns("original_url", "short_code").
@@ -69,7 +69,7 @@ func (d *PostgresDB) AddNewAlias(ctx context.Context, url string, shortLink stri
 	return nil
 }
 
-func (d *PostgresDB) FindByURL(ctx context.Context, url string) (string, error) {
+func (d *RepoPostgres) FindByURL(ctx context.Context, url string) (string, error) {
 	query, args, err := sq.
 		Select("short_code").
 		From("short_links").
@@ -91,7 +91,7 @@ func (d *PostgresDB) FindByURL(ctx context.Context, url string) (string, error) 
 	return shortCode, nil
 }
 
-func (d *PostgresDB) FindByShortLink(ctx context.Context, shortLink string) (string, error) {
+func (d *RepoPostgres) FindByShortLink(ctx context.Context, shortLink string) (string, error) {
 	query, args, err := sq.
 		Select("original_url").
 		From("short_links").

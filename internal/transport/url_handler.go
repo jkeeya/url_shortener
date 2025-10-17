@@ -9,13 +9,13 @@ import (
 )
 
 type createAliasRequest struct {
-	URL string `json:"url"`
+	URL string `repo_json:"url"`
 }
 
 type createAliasResponse struct {
-	URL       string `json:"url"`
-	ShortLink string `json:"short_link"`
-	Existed   bool   `json:"existed"`
+	URL       string `repo_json:"url"`
+	ShortLink string `repo_json:"short_link"`
+	Existed   bool   `repo_json:"existed"`
 }
 
 func (h *Handlers) CreateAlias(c echo.Context) error {
@@ -42,4 +42,33 @@ func (h *Handlers) CreateAlias(c echo.Context) error {
 		return c.JSON(http.StatusOK, response)
 	}
 	return c.JSON(http.StatusCreated, response)
+}
+
+type GetShortByURLRequest struct {
+	URL string
+}
+type GetShortByURLResponse struct {
+	ShortLink string
+}
+
+func (h *Handlers) GetShortByURL(c echo.Context) error {
+	var request GetShortByURLRequest
+	var response GetShortByURLResponse
+
+	if err := c.Bind(&request); err != nil || request.URL == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid or missing url"})
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 3*time.Second)
+	defer cancel()
+
+	shortLink, err := h.svc.GetShortByURL(ctx, request.URL)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	response = GetShortByURLResponse{
+		ShortLink: shortLink,
+	}
+	return c.JSON(http.StatusOK, response)
 }

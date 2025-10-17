@@ -7,7 +7,7 @@ import (
 type Repo interface {
 	FindByURL(ctx context.Context, url string) (string, error)
 	FindByShortLink(ctx context.Context, shortLink string) (string, error)
-	AddNewAlias(ctx context.Context, url string, alias string) error
+	AddNewAlias(ctx context.Context, url string, shortLink string) error
 }
 
 type URLHandler struct {
@@ -41,5 +41,14 @@ func (h URLHandler) Redirect(ctx context.Context, shortLink string) (string, err
 		return "", err
 	} else {
 		return url, err
+	}
+}
+
+func (h URLHandler) GetShortByURL(ctx context.Context, url string) (string, error) {
+	short, err := h.repo.FindByURL(ctx, url)
+	if err != nil || short == "" {
+		return "", err
+	} else {
+		return short, nil
 	}
 }

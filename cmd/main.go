@@ -13,10 +13,12 @@ func main() {
 	e.Use(middleware.Recover())
 
 	var repository RepositoryType
-	repository = RepoPostgres
+	repository = RepoJson
 	app := NewApp(e, repository)
 
+	e.Static("/static", "static")
+	e.File("/", "front/templates/index.html")
 	transport.Route(e, app.URLHandler)
-	e.GET("/")
+	e.Logger.Fatal(e.Start(":8080"))
 
 }

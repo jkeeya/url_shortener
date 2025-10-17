@@ -1,7 +1,8 @@
 package app
 
 import (
-	"github.com/jkeeya/url_shortener/internal/repo/postgres"
+	"github.com/jkeeya/url_shortener/internal/repo/repo_json"
+	"github.com/jkeeya/url_shortener/internal/repo/repo_postgres"
 	"github.com/jkeeya/url_shortener/internal/service"
 	"github.com/jkeeya/url_shortener/internal/transport"
 	"github.com/labstack/echo/v4"
@@ -15,13 +16,16 @@ type App struct {
 type RepositoryType string
 
 const (
-	RepoPostgres RepositoryType = "postgres"
-	RepoJson     RepositoryType = "json"
+	RepoPostgres RepositoryType = "repo_postgres"
+	RepoJson     RepositoryType = "repo_json"
 )
 
 func initDatabaseRepository(repositoryType RepositoryType) service.Repo {
-	if repositoryType == RepoPostgres {
-		return postgres.NewPostgresRepo()
+	switch repositoryType {
+	case RepoPostgres:
+		return repo_postgres.NewPostgresRepo()
+	case RepoJson:
+		return repo_json.NewJsonRepo()
 	}
 	return nil
 }

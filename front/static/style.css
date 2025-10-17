@@ -1,0 +1,4 @@
+.tab { opacity: 1; transition: opacity .15s ease; }
+.tab-inactive { opacity: .45; }
+#output-box[readonly] { background: #fafafa; }
+#go-btn.is-loading { opacity: .6; cursor: wait; }

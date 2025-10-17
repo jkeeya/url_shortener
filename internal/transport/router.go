@@ -16,4 +16,5 @@ func NewHTTPHandlers(svc *service.URLHandler) *Handlers {
 func Route(e *echo.Echo, h *Handlers) {
 	e.POST("/create/:url", h.CreateAlias)
 	e.GET("/:short_link", h.Redirect)
+	e.GET("/get_short_link/:url", h.GetShortByURL)
 }
