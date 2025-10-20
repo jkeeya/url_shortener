@@ -9,6 +9,7 @@ import (
 
 func main() {
 	e := echo.New()
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
@@ -16,7 +17,7 @@ func main() {
 	repository = RepoJson
 	app := NewApp(e, repository)
 
-	e.Static("/static", "static")
+	e.Static("/front/static", "front/static")
 	e.File("/", "front/templates/index.html")
 	transport.Route(e, app.URLHandler)
 	e.Logger.Fatal(e.Start(":8080"))

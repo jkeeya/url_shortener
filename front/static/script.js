@@ -1,10 +1,10 @@
 /* script.js
    Две вкладки:
-     - shorten: сгенерировать шорт по оригинальному URL
-     - lookup:  найти шорт по оригинальному URL
+     - create:  сгенерировать шорт по оригинальному URL
+     - find:    найти шорт по оригинальному URL
    Ожидаемые эндпоинты:
-     POST /shorten { "url": "<оригинальный URL>" } -> "https://sho.rt/abc123" (text или {"result": "...", "short": "..."})
-     POST /lookup  { "url": "<оригинальный URL>" } -> "https://sho.rt/abc123" (text или {"result": "...", "short": "..."})
+     POST /create { "url": "<оригинальный URL>" } -> "https://sho.rt/abc123"
+     GET  /find_short_link?url=<оригинальный URL> -> "https://sho.rt/abc123"
 */
 
 (function () {
@@ -12,41 +12,41 @@
 
     // Настройка путей к API
     const ENDPOINTS = {
-        shorten: "/shorten",
-        lookup:  "/lookup",
+        create: "/create",
+        find:   "/find_short_link",
     };
 
     // Захват DOM-элементов
-    const tabShorten = document.getElementById("tab-shorten");
-    const tabExpand  = document.getElementById("tab-expand"); // переиспользуем как "lookup"
-    const input      = document.getElementById("input-url");
-    const goBtn      = document.getElementById("go-btn");
-    const output     = document.getElementById("output-box");
+    const tabCreate = document.getElementById("tab-shorten");
+    const tabFind   = document.getElementById("tab-expand");
+    const input     = document.getElementById("input-url");
+    const goBtn     = document.getElementById("go-btn");
+    const output    = document.getElementById("output-box");
 
-    if (!tabShorten || !tabExpand || !input || !goBtn || !output) {
+    if (!tabCreate || !tabFind || !input || !goBtn || !output) {
         console.error("Проверь id элементов: tab-shorten, tab-expand, input-url, go-btn, output-box");
         return;
     }
 
     output.readOnly = true;
 
-    // Текущее состояние вкладки: 'shorten' | 'lookup'
-    let mode = "shorten";
+    // Текущее состояние вкладки: 'create' | 'find'
+    let mode = "create";
 
     function setMode(nextMode) {
         mode = nextMode;
 
-        if (mode === "shorten") {
-            tabShorten.classList.add("tab-active");
-            tabShorten.classList.remove("tab-inactive");
-            tabExpand.classList.add("tab-inactive");
-            tabExpand.classList.remove("tab-active");
-            input.placeholder = "Вставьте оригинальный URL (сгенерировать шорт)";
+        if (mode === "create") {
+            tabCreate.classList.add("tab-active");
+            tabCreate.classList.remove("tab-inactive");
+            tabFind.classList.add("tab-inactive");
+            tabFind.classList.remove("tab-active");
+            input.placeholder = "Вставьте оригинальный URL (создать шорт)";
         } else {
-            tabExpand.classList.add("tab-active");
-            tabExpand.classList.remove("tab-inactive");
-            tabShorten.classList.add("tab-inactive");
-            tabShorten.classList.remove("tab-active");
+            tabFind.classList.add("tab-active");
+            tabFind.classList.remove("tab-inactive");
+            tabCreate.classList.add("tab-inactive");
+            tabCreate.classList.remove("tab-active");
             input.placeholder = "Вставьте оригинальный URL (найти шорт)";
         }
 
@@ -68,20 +68,19 @@
         lock(true);
 
         try {
-            let url = "";
-            let payload = { url: val }; // в обоих режимах шлём оригинальный URL
-
-            if (mode === "shorten") {
-                url = ENDPOINTS.shorten;
+            let resp;
+            if (mode === "create") {
+                // POST /create с JSON-телом
+                resp = await fetch(ENDPOINTS.create, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: val }),
+                });
             } else {
-                url = ENDPOINTS.lookup;
+                // GET /find_short_link?url=...
+                const q = new URLSearchParams({ url: val });
+                resp = await fetch(`${ENDPOINTS.find}?${q.toString()}`);
             }
-
-            const resp = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
 
             if (!resp.ok) throw new Error("Сервер вернул " + resp.status);
 
@@ -117,10 +116,10 @@
         input.focus();
     }
 
-    tabShorten.addEventListener("click", () => setMode("shorten"));
-    tabExpand .addEventListener("click", () => setMode("lookup"));
+    tabCreate.addEventListener("click", () => setMode("create"));
+    tabFind.addEventListener("click", () => setMode("find"));
     goBtn.addEventListener("click", send);
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") send(); });
 
-    setMode("shorten");
+    setMode("create");
 })();

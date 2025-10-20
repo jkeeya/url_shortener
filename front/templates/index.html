@@ -1,11 +1,16 @@
-<div class="tabs">
-    <button id="tab-shorten" class="tab tab-active">Сгенерировать сокращённую ссылку</button>
-    <button id="tab-expand"  class="tab tab-inactive">Найти оригинальный URL по сокращённой ссылке</button>
+<div class="wrap">
+    <div class="tabs">
+        <button id="tab-shorten" class="tab tab-active">Сгенерировать сокращённую ссылку</button>
+        <button id="tab-expand"  class="tab tab-inactive">Найти шорт по оригинальному URL</button>
+    </div>
+
+    <div class="row">
+        <input id="input-url" type="text" placeholder="Вставьте оригинальный URL">
+        <button id="go-btn" type="button" aria-label="Выполнить">→</button>
+    </div>
+
+    <textarea id="output-box" rows="3" readonly></textarea>
 </div>
 
-<div class="row">
-    <input id="input-url" type="text" placeholder="Вставьте оригинальный URL">
-    <button id="go-btn" aria-label="Выполнить">→</button>
-</div>
-
-<textarea id="output-box" rows="3" readonly></textarea>
+<link rel="stylesheet" href="/front/static/style.css">
+<script src="/front/static/script.js"></script>

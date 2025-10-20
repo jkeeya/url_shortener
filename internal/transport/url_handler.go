@@ -9,13 +9,13 @@ import (
 )
 
 type createAliasRequest struct {
-	URL string `repo_json:"url"`
+	URL string `json:"url"`
 }
 
 type createAliasResponse struct {
-	URL       string `repo_json:"url"`
-	ShortLink string `repo_json:"short_link"`
-	Existed   bool   `repo_json:"existed"`
+	URL       string `json:"url"`
+	ShortLink string `json:"short_link"`
+	Existed   bool   `json:"existed"`
 }
 
 func (h *Handlers) CreateAlias(c echo.Context) error {
@@ -44,31 +44,35 @@ func (h *Handlers) CreateAlias(c echo.Context) error {
 	return c.JSON(http.StatusCreated, response)
 }
 
-type GetShortByURLRequest struct {
-	URL string
+type FindShortByURLRequest struct {
+	URL string `json:"url"`
 }
-type GetShortByURLResponse struct {
-	ShortLink string
+type FindShortByURLResponse struct {
+	ShortLink string `json:"short_link"`
+	Exist     bool   `json:"exist"`
 }
 
-func (h *Handlers) GetShortByURL(c echo.Context) error {
-	var request GetShortByURLRequest
-	var response GetShortByURLResponse
-
-	if err := c.Bind(&request); err != nil || request.URL == "" {
+func (h *Handlers) FindShortByURL(c echo.Context) error {
+	var response FindShortByURLResponse
+	url := c.QueryParam("url")
+	// TODO: проверка url на валидность
+	if url == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid or missing url"})
 	}
 
 	ctx, cancel := context.WithTimeout(c.Request().Context(), 3*time.Second)
 	defer cancel()
 
-	shortLink, err := h.svc.GetShortByURL(ctx, request.URL)
+	shortLink, err := h.svc.GetShortByURL(ctx, url)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	response = GetShortByURLResponse{
+	exist := shortLink != ""
+
+	response = FindShortByURLResponse{
 		ShortLink: shortLink,
+		Exist:     exist,
 	}
 	return c.JSON(http.StatusOK, response)
 }
