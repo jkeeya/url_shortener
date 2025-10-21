@@ -26,7 +26,7 @@ type Alias struct {
 // TODO: если вдруг сгенерированный шорт уже существует для другого url
 func (h URLHandler) CreateAlias(ctx context.Context, url string) (bool, Alias, error) {
 	exisingShortLink, _ := h.repo.FindByURL(ctx, url)
-	if url != "" {
+	if exisingShortLink != "" {
 		return true, Alias{URL: url, ShortLink: exisingShortLink}, nil
 	} else {
 		shortLink := GenerateShortLink()

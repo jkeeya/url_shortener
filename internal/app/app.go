@@ -20,18 +20,18 @@ const (
 	RepoJson     RepositoryType = "repo_json"
 )
 
-func initDatabaseRepository(repositoryType RepositoryType) service.Repo {
+func initRepository(repositoryType RepositoryType, dataSource string) service.Repo {
 	switch repositoryType {
 	case RepoPostgres:
 		return repo_postgres.NewPostgresRepo()
 	case RepoJson:
-		return repo_json.NewJsonRepo()
+		return repo_json.NewJsonRepo(dataSource)
 	}
 	return nil
 }
 
-func NewApp(e *echo.Echo, repo RepositoryType) *App {
-	repository := initDatabaseRepository(repo)
+func NewApp(e *echo.Echo, repo RepositoryType, dataSource string) *App {
+	repository := initRepository(repo, dataSource)
 	svc := service.NewURLHandler(repository)
 	urlHandler := transport.NewHTTPHandlers(svc)
 	return &App{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -11,17 +12,13 @@ import (
 	"github.com/jkeeya/url_shortener/internal/service"
 )
 
-func NewJsonRepo() service.Repo {
-	exe, _ := os.Executable()
-	dir := filepath.Dir(exe)
-	dataFile := filepath.Join(dir, "internal/repo/repo_json/data.json")
-
+func NewJsonRepo(dataSource string) service.Repo {
 	r := &RepoJson{
-		dataFilePath: dataFile,
+		dataFilePath: dataSource,
 		content:      make(map[string]string),
 	}
 
-	b, err := os.ReadFile(dataFile)
+	b, err := os.ReadFile(dataSource)
 	if err == nil && len(b) > 0 {
 		_ = json.Unmarshal(b, &r.content)
 	}
@@ -44,7 +41,7 @@ func (j *RepoJson) FindByURL(ctx context.Context, url string) (string, error) {
 			return short, nil
 		}
 	}
-	return "", errors.New("запрашиваемого URL нет в базе")
+	return "", nil
 }
 
 func (j *RepoJson) FindByShortLink(ctx context.Context, shortLink string) (string, error) {
@@ -59,21 +56,31 @@ func (j *RepoJson) FindByShortLink(ctx context.Context, shortLink string) (strin
 	}
 }
 
-func (j *RepoJson) AddNewAlias(ctx context.Context, url string, shortLink string) error {
+func (j *RepoJson) AddNewAlias(ctx context.Context, url, shortLink string) error {
 	j.mu.Lock()
+	if j.content == nil {
+		j.content = make(map[string]string)
+	}
 	j.content[shortLink] = url
-	file, _ := os.Open(j.dataFilePath)
-	defer file.Close()
 
 	data, err := json.MarshalIndent(j.content, "", "  ")
 	j.mu.Unlock()
 	if err != nil {
-		return err
+		return fmt.Errorf("marshal json: %w", err)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(j.dataFilePath), 0o755); err != nil {
+		return fmt.Errorf("mkdir: %w", err)
 	}
 
 	tmp := j.dataFilePath + ".tmp"
 	if err := os.WriteFile(tmp, data, 0o644); err != nil {
-		return err
+		return fmt.Errorf("write tmp: %w", err)
 	}
-	return os.Rename(tmp, j.dataFilePath)
+	if err := os.Rename(tmp, j.dataFilePath); err != nil {
+		return fmt.Errorf("rename: %w", err)
+	}
+	fmt.Printf("writing to %s", j.dataFilePath) // или fmt.Println
+
+	return nil
 }

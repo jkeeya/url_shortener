@@ -41,13 +41,13 @@
             tabCreate.classList.remove("tab-inactive");
             tabFind.classList.add("tab-inactive");
             tabFind.classList.remove("tab-active");
-            input.placeholder = "Вставьте оригинальный URL (создать шорт)";
+            input.placeholder = "Вставьте оригинальный URL (создать короткую ссылку)";
         } else {
             tabFind.classList.add("tab-active");
             tabFind.classList.remove("tab-inactive");
             tabCreate.classList.add("tab-inactive");
             tabCreate.classList.remove("tab-active");
-            input.placeholder = "Вставьте оригинальный URL (найти шорт)";
+            input.placeholder = "Вставьте оригинальный URL (найти короткую ссылку)";
         }
 
         input.value = "";
@@ -90,7 +90,13 @@
 
             if (ct.includes("application/json")) {
                 const data = await resp.json();
-                text = data.result || data.short || data.url || JSON.stringify(data);
+
+                if (data.Exist === false || data.exist === false) {
+                    text = "Этой ссылки ещё нет в базе.";
+                } else {
+                    // подхватываем поле ShortLink или short, или просто JSON
+                    text = data.ShortLink || data.short_link || data.result || data.url || JSON.stringify(data);
+                }
             } else {
                 text = await resp.text();
             }
