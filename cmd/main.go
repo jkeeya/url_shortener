@@ -12,14 +12,14 @@ import (
 func main() {
 	port := flag.String("port", ":8080", "порт сервера")
 	dataSource := flag.String("data_source", "data.json", "путь к файлу базы")
+
+	var repository RepositoryType = RepoJson
+	flag.Var(&repository, "repo_type", "тип хранилища")
 	flag.Parse()
 
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-
-	var repository RepositoryType
-	repository = RepoJson
 	app := NewApp(e, repository, *dataSource)
 
 	e.Static("/front/static", "front/static")

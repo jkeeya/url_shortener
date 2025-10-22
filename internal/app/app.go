@@ -1,6 +1,9 @@
 package app
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/jkeeya/url_shortener/internal/repo/repo_json"
 	"github.com/jkeeya/url_shortener/internal/repo/repo_postgres"
 	"github.com/jkeeya/url_shortener/internal/service"
@@ -26,6 +29,25 @@ func initRepository(repositoryType RepositoryType, dataSource string) service.Re
 		return repo_postgres.NewPostgresRepo()
 	case RepoJson:
 		return repo_json.NewJsonRepo(dataSource)
+	}
+	return nil
+}
+
+func (r *RepositoryType) String() string {
+	if r == nil || *r == "" {
+		return string(RepoJson)
+	}
+	return string(*r)
+}
+
+func (r *RepositoryType) Set(s string) error {
+	switch strings.ToLower(s) {
+	case "json":
+		*r = RepoJson
+	case "postgres", "postgresql", "pg":
+		*r = RepoPostgres
+	default:
+		return fmt.Errorf("invalid repo_type: %q (allowed: json, postgres)", s)
 	}
 	return nil
 }
