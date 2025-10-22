@@ -31,8 +31,8 @@ go build -o cmd/main.go
 
 Доступны два типа хранилища
 - JSON. Путь до файла-хранилища задаётся флагом -data_source.
-Структура имеет вид "short_code" : "original_url". Например:
-  {"xpsKsIX": "https://google.com" }
+Структура имеет вид ```"short_code" : "original_url"```. Например:
+  ```{"xpsKsIX": "https://google.com" }```
 - Postgres. Переменные окружения для доступа к базе хранятся в .env файле в корне проекта.
 База имеет одну таблицу ```short_links``` со следующим форматом данных:
  
